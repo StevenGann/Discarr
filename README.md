@@ -1,6 +1,6 @@
 # Discarr
 
-Stream video to Discord by emulating a user. Supports screen share (Linux container), with future support for virtual webcam and hardware capture.
+Stream video to Discord voice channels. Supports screen share (Linux container), with future support for virtual webcam and hardware capture.
 
 **Repository:** [https://github.com/StevenGann/Discarr](https://github.com/StevenGann/Discarr)
 
