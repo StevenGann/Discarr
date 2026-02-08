@@ -1,0 +1,18 @@
+services:
+  discarr:
+    build: .
+    container_name: discarr
+    privileged: true
+    shm_size: "2gb"
+    env_file:
+      - .env
+    environment:
+      - DISPLAY=:99
+      - OUTPUT_MODE=screen_share
+      - PLATFORM=linux
+      - PORT=3000
+    volumes:
+      - ./discord-profile:/app/discord-profile
+      - ./videos:/videos
+    ports:
+      - "3000:3000"
