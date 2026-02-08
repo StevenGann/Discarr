@@ -6,46 +6,69 @@ This document describes the internal architecture for developers taking over or 
 
 Discarr streams video to Discord voice channels via a REST API. The system uses a pluggable architecture so different output methods (screen share, virtual webcam, hardware capture) can be added without rewriting core logic.
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  REST API   │────▶│  Source Resolver │────▶│  Playable URL   │
-└─────────────┘     └──────────────────┘     └────────┬────────┘
-       │                                                    │
-       │              ┌──────────────────┐                  │
-       └─────────────▶│  Output Backend  │◀─────────────────┘
-                      │  (config-driven) │
-                      └────────┬─────────┘
-                               │
-                      ┌────────▼─────────┐
-                      │  Video Feeder    │
-                      │  (target-driven) │
-                      └──────────────────┘
+```mermaid
+flowchart LR
+    RESTAPI[REST API]
+    SourceResolver[Source Resolver]
+    PlayableURL[Playable URL]
+    OutputBackend[Output Backend]
+    VideoFeeder[Video Feeder]
+
+    RESTAPI --> SourceResolver
+    SourceResolver --> PlayableURL
+    RESTAPI --> OutputBackend
+    PlayableURL --> OutputBackend
+    OutputBackend --> VideoFeeder
 ```
 
 ## Directory Structure
 
+```mermaid
+flowchart TB
+    subgraph src [src/]
+        index[index.ts]
+        config[config.ts]
+        subgraph api [api/]
+            routes[routes.ts]
+        end
+        subgraph backends [backends/]
+            types[types.ts]
+            registry[registry.ts]
+            screenShare[screen-share/]
+            virtualWebcam[virtual-webcam/]
+            hardwareCapture[hardware-capture/]
+        end
+        subgraph feeders [feeders/]
+            feederTypes[types.ts]
+            feederRegistry[registry.ts]
+            mpvDisplay[mpv-display.ts]
+            ffmpegV4l2[ffmpeg-v4l2.ts]
+        end
+        subgraph sourcesDir [sources/]
+            resolver[resolver.ts]
+        end
+        subgraph jellyfinDir [jellyfin/]
+            client[client.ts]
+        end
+    end
 ```
-src/
-├── index.ts              # Entry point, Express app, shutdown handling
-├── config.ts             # Environment/config loading with Zod validation
-├── api/
-│   └── routes.ts         # REST endpoints: /health, /play, /stop, /status, etc.
-├── backends/
-│   ├── types.ts          # OutputBackend interface, Target type
-│   ├── registry.ts       # Factory: creates backend from OUTPUT_MODE config
-│   ├── screen-share/     # Implemented: Xvfb + Discord web + screen share
-│   ├── virtual-webcam/   # Stub: v4l2loopback (future)
-│   └── hardware-capture/ # Stub: real /dev/video* (future)
-├── feeders/
-│   ├── types.ts          # VideoFeeder interface
-│   ├── registry.ts       # Selects feeder by target type
-│   ├── mpv-display.ts    # Implemented: MPV → X11 display
-│   └── ffmpeg-v4l2.ts    # Stub: FFmpeg → v4l2 (future)
-├── sources/
-│   └── resolver.ts       # Resolves local/url/jellyfin → playable path
-└── jellyfin/
-    └── client.ts         # Jellyfin API: parse URL, get stream URL
-```
+
+| Path | Purpose |
+|------|---------|
+| `index.ts` | Entry point, Express app, shutdown handling |
+| `config.ts` | Environment/config loading with Zod validation |
+| `api/routes.ts` | REST endpoints: /health, /play, /stop, /status, etc. |
+| `backends/types.ts` | OutputBackend interface, Target type |
+| `backends/registry.ts` | Factory: creates backend from OUTPUT_MODE config |
+| `backends/screen-share/` | Implemented: Xvfb + Discord web + screen share |
+| `backends/virtual-webcam/` | Stub: v4l2loopback (future) |
+| `backends/hardware-capture/` | Stub: real /dev/video* (future) |
+| `feeders/types.ts` | VideoFeeder interface |
+| `feeders/registry.ts` | Selects feeder by target type |
+| `feeders/mpv-display.ts` | Implemented: MPV → X11 display |
+| `feeders/ffmpeg-v4l2.ts` | Stub: FFmpeg → v4l2 (future) |
+| `sources/resolver.ts` | Resolves local/url/jellyfin → playable path |
+| `jellyfin/client.ts` | Jellyfin API: parse URL, get stream URL |
 
 ## Key Abstractions
 

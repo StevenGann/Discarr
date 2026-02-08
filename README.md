@@ -164,15 +164,17 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed internals. See [CONTRIBUTING
 
 ## Project Structure
 
-```
-src/
-├── index.ts         # Entry point
-├── config.ts        # Config loading
-├── api/routes.ts    # REST API
-├── backends/        # Output backends (screen-share, virtual-webcam, hardware-capture)
-├── feeders/         # Video feeders (MPV→display, FFmpeg→v4l2)
-├── sources/         # Source resolution
-└── jellyfin/        # Jellyfin API client
+```mermaid
+flowchart TB
+    subgraph src [src/]
+        index[index.ts]
+        config[config.ts]
+        api[api/routes.ts]
+        backends[backends/]
+        feeders[feeders/]
+        sources[sources/]
+        jellyfin[jellyfin/]
+    end
 ```
 
 ## Troubleshooting
