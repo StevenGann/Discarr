@@ -1,3 +1,8 @@
+/**
+ * REST API routes for playback control.
+ * Endpoints: GET /health, GET /status, POST /play, POST /stop, POST /pause, POST /resume.
+ * Orchestrates backend, feeder, and source resolver.
+ */
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 import type { OutputBackend } from "../backends/types.js";
@@ -6,6 +11,7 @@ import { resolveSource } from "../sources/resolver.js";
 import type { Config } from "../config.js";
 import type { JellyfinClient } from "../jellyfin/client.js";
 
+/** Request body for POST /play. Source type determines which field is required. */
 const PlaySchema = z
   .object({
     source: z.enum(["local", "url", "jellyfin"]),

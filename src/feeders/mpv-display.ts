@@ -25,10 +25,10 @@ export class MPVDisplayFeeder implements VideoFeeder {
     const env = { ...process.env, DISPLAY: display };
 
     this.process = spawn("mpv", [
-      "--no-osc",
-      "--no-input-default-bindings",
-      "--fs",
-      "--no-audio-display",
+      "--no-osc",                    // No on-screen controller
+      "--no-input-default-bindings", // Disable keyboard shortcuts
+      "--fs",                        // Fullscreen on the virtual display
+      "--no-audio-display",          // Don't show audio viz overlay
       source,
     ], {
       env,

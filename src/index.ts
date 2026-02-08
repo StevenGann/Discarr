@@ -1,3 +1,7 @@
+/**
+ * Discarr entry point.
+ * Loads config, creates output backend and Jellyfin client, mounts REST API, handles shutdown.
+ */
 import express from "express";
 import cors from "cors";
 import { loadConfig } from "./config.js";

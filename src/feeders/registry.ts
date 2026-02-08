@@ -1,3 +1,6 @@
+/**
+ * Feeder factory. Returns a VideoFeeder that supports the given target type.
+ */
 import type { VideoFeeder } from "./types.js";
 import type { Target } from "../backends/types.js";
 import { MPVDisplayFeeder } from "./mpv-display.js";

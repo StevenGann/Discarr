@@ -1,3 +1,7 @@
+/**
+ * Configuration loading and validation.
+ * Reads from process.env and optional .env file. Validates with Zod.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
@@ -43,6 +47,7 @@ function loadEnv(): Record<string, string> {
   return { ...process.env, ...env } as Record<string, string>;
 }
 
+/** Load and validate config from env. Throws on validation failure. */
 export function loadConfig() {
   const raw = loadEnv();
   const parsed = ConfigSchema.safeParse({

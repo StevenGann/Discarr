@@ -4,6 +4,8 @@ Stream video to Discord voice channels. Supports screen share (Linux container),
 
 **Repository:** [https://github.com/StevenGann/Discarr](https://github.com/StevenGann/Discarr)
 
+**Documentation:** [ARCHITECTURE.md](ARCHITECTURE.md) (internals) | [CONTRIBUTING.md](CONTRIBUTING.md) (development)
+
 ## Features
 
 - **REST API** – Control playback via HTTP
@@ -74,6 +76,17 @@ npm run dev
 ```
 
 The `discord-profile` volume persists your Discord session.
+
+### API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check; returns status, outputMode, platform |
+| GET | `/status` | Current playback state (stopped/playing/paused) |
+| POST | `/play` | Start playback. Body: `{ source, path? \| url? \| jellyfinUrl? }` |
+| POST | `/stop` | Stop playback |
+| POST | `/pause` | Pause playback |
+| POST | `/resume` | Resume playback |
 
 ### API Usage
 
@@ -146,6 +159,31 @@ npm run dev
 - **OutputBackend** – How Discord receives video (screen share, virtual webcam, etc.)
 - **VideoFeeder** – Delivers video to the backend (MPV→display, FFmpeg→v4l2)
 - **Source Resolver** – Resolves local/URL/Jellyfin to playable path
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed internals. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup.
+
+## Project Structure
+
+```
+src/
+├── index.ts         # Entry point
+├── config.ts        # Config loading
+├── api/routes.ts    # REST API
+├── backends/        # Output backends (screen-share, virtual-webcam, hardware-capture)
+├── feeders/         # Video feeders (MPV→display, FFmpeg→v4l2)
+├── sources/         # Source resolution
+└── jellyfin/        # Jellyfin API client
+```
+
+## Troubleshooting
+
+| Issue | Possible fix |
+|-------|--------------|
+| Discord login required every run | Ensure `discord-profile` volume is mounted and persists. Do first login manually via VNC or local run. |
+| "DISCORD_SERVER_ID must be set" | Add both `DISCORD_SERVER_ID` and `DISCORD_VOICE_CHANNEL_ID` to `.env`. |
+| Video/audio lag or stutter | Xvfb is software-rendered. Consider GPU passthrough or lower resolution. |
+| Discord UI selectors broken | Discord may have updated. Check `discord-controller.ts` selectors (aria-label, data-list-item-id). |
+| Jellyfin "not configured" | Set `JELLYFIN_SERVER_URL`, `JELLYFIN_API_KEY`, and `JELLYFIN_USER_ID`. |
 
 ## License
 

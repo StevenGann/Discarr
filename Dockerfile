@@ -1,3 +1,5 @@
+# Discarr Docker image - Linux container for screen share mode
+# Requires: Xvfb (virtual display), Firefox, MPV, Geckodriver, PulseAudio
 FROM node:20-bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

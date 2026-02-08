@@ -1,9 +1,10 @@
+/**
+ * Jellyfin API client. Resolves web UI URLs to direct stream URLs for playback.
+ * Requires JELLYFIN_SERVER_URL and JELLYFIN_API_KEY. JELLYFIN_USER_ID used for playback context.
+ */
 import axios, { type AxiosInstance } from "axios";
 import type { Config } from "../config.js";
 
-/**
- * Jellyfin client - resolves content URLs to direct stream URLs.
- */
 export class JellyfinClient {
   private client: AxiosInstance | null = null;
 

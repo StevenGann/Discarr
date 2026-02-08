@@ -1,10 +1,12 @@
+/**
+ * Source resolution: maps play request to a path or URL that MPV/FFmpeg can use.
+ * - local: resolves relative to VIDEOS_PATH, accepts absolute paths
+ * - url: passes through
+ * - jellyfin: delegates to jellyfinResolve (JellyfinClient.resolveToStreamUrl)
+ */
 import path from "node:path";
 import type { Config } from "../config.js";
 
-/**
- * Resolves a play request to a playable path or URL.
- * Handles: local path, absolute path, HTTP URL, Jellyfin URL.
- */
 export async function resolveSource(
   input: { source: "local" | "url" | "jellyfin"; path?: string; url?: string; jellyfinUrl?: string },
   config: Config,

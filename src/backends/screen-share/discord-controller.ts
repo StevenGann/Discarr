@@ -6,6 +6,10 @@ import type { Config } from "../../config.js";
 /**
  * DiscordController - automates Discord web client via Selenium + Firefox.
  * Handles: navigate to server, join voice channel, start/stop screen share.
+ *
+ * Note: Discord's DOM structure can change with updates. If automation breaks,
+ * inspect the web client and update selectors below (data-list-item-id,
+ * aria-label, class names). Test with a persistent profile to avoid login loops.
  */
 export class DiscordController {
   private driver: WebDriver | null = null;
@@ -54,6 +58,7 @@ export class DiscordController {
   async joinVoiceChannel(): Promise<void> {
     if (!this.driver) throw new Error("Discord controller not initialized");
 
+    // Discord channel list items use data-list-item-id="channels___<channelId>"
     const voiceChannelSelector = `a[data-list-item-id="channels___${this.config.DISCORD_VOICE_CHANNEL_ID}"]`;
     const channel = await this.driver.wait(
       until.elementLocated(By.css(voiceChannelSelector)),

@@ -1,3 +1,6 @@
+/**
+ * Backend factory. Creates the appropriate OutputBackend based on OUTPUT_MODE config.
+ */
 import type { OutputBackend } from "./types.js";
 import type { Config, OutputModeType } from "../config.js";
 import { ScreenShareBackend } from "./screen-share/index.js";
