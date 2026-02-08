@@ -1,3 +1,5 @@
+# Discarr - https://github.com/StevenGann/Discarr
+# To use the pre-built image instead of building: replace "build: ." with "image: ghcr.io/stevengan/discarr:latest"
 services:
   discarr:
     build: .

@@ -2,6 +2,7 @@
   "name": "discarr",
   "version": "0.1.0",
   "description": "Discord video streaming - emulates a user to stream video to a voice channel",
+  "repository": "https://github.com/StevenGann/Discarr",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

@@ -2,6 +2,8 @@
 
 Stream video to Discord by emulating a user. Supports screen share (Linux container), with future support for virtual webcam and hardware capture.
 
+**Repository:** [https://github.com/StevenGann/Discarr](https://github.com/StevenGann/Discarr)
+
 ## Features
 
 - **REST API** – Control playback via HTTP
@@ -12,13 +14,13 @@ Stream video to Discord by emulating a user. Supports screen share (Linux contai
 
 ### Docker Image
 
-Pre-built images are published to GitHub Container Registry:
+Pre-built images are published to [GitHub Container Registry](https://github.com/StevenGann/Discarr/pkgs/container/discarr):
 
 ```bash
-docker pull ghcr.io/<owner>/<repo>:latest
+docker pull ghcr.io/stevengan/discarr:latest
 ```
 
-Replace `<owner>/<repo>` with your GitHub repository (e.g. `myuser/Discarr` → `ghcr.io/myuser/discarr`). Images are built on push to `main`/`master` and on version tags (e.g. `v0.1.0`).
+Images are built on push to `main`/`master` and on version tags (e.g. `v0.1.0`).
 
 ### Prerequisites
 
@@ -29,14 +31,17 @@ Replace `<owner>/<repo>` with your GitHub repository (e.g. `myuser/Discarr` → 
 
 ### Setup
 
-1. Clone and configure:
+1. Clone the repository and configure:
 
 ```bash
+git clone https://github.com/StevenGann/Discarr.git
+cd Discarr
 cp config.example.env .env
 # Edit .env with your Discord server ID, voice channel ID, and optional Jellyfin settings
 ```
 
 2. Get Discord IDs (enable Developer Mode in Discord settings first):
+
    - Right-click server → Copy ID → `DISCORD_SERVER_ID`
    - Right-click voice channel → Copy ID → `DISCORD_VOICE_CHANNEL_ID`
 
@@ -145,3 +150,7 @@ npm run dev
 ## License
 
 MIT
+
+---
+
+**Discarr** – [https://github.com/StevenGann/Discarr](https://github.com/StevenGann/Discarr)
