@@ -13,23 +13,36 @@ import type { Config } from "../../config.js";
  */
 export class DiscordController {
   private driver: WebDriver | null = null;
+  /** True if driver was created headless (for login QR only); cannot be used for screen share */
+  private _headlessOnly = false;
 
   constructor(
     private readonly config: Config,
     private readonly profilePath: string
   ) {}
 
-  /** Build browser instance. Shared by init and initForLogin. */
+  /** Build browser for main flow (needs real display for screen share). */
   private async buildDriver(): Promise<WebDriver> {
     const options = new firefox.Options();
 
-    // Use persistent profile so login survives restarts
     options.setProfile(path.resolve(this.profilePath));
-
-    // Required for WebRTC/screen share in headless
     options.setPreference("media.navigator.permission.disabled", true);
     options.setPreference("media.navigator.streams.fake", false);
     options.setPreference("dom.webdriver.enabled", false);
+
+    return new Builder()
+      .forBrowser("firefox")
+      .setFirefoxOptions(options)
+      .build();
+  }
+
+  /** Build headless browser for login QR (no display needed). */
+  private async buildDriverHeadless(): Promise<WebDriver> {
+    const options = new firefox.Options();
+
+    options.setProfile(path.resolve(this.profilePath));
+    options.setPreference("dom.webdriver.enabled", false);
+    options.addArguments("--headless");
 
     return new Builder()
       .forBrowser("firefox")
@@ -62,12 +75,13 @@ export class DiscordController {
 
   /**
    * Open Discord login page and return screenshot of QR code for scanning.
-   * Browser stays open; scan with Discord mobile app to complete login.
-   * Session is saved to profile for subsequent runs.
+   * Uses headless Firefox (no display required). Browser stays open; scan with
+   * Discord mobile app to complete login. Session is saved to profile.
    */
   async initForLoginAndGetQR(): Promise<Buffer> {
     if (!this.driver) {
-      this.driver = await this.buildDriver();
+      this.driver = await this.buildDriverHeadless();
+      this._headlessOnly = true;
     }
 
     await this.driver.get("https://discord.com/login");
@@ -177,6 +191,10 @@ export class DiscordController {
     } catch {
       // Ignore
     }
+  }
+
+  isHeadlessOnly(): boolean {
+    return this._headlessOnly;
   }
 
   async shutdown(): Promise<void> {

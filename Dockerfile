@@ -5,6 +5,11 @@ FROM node:20-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
     firefox-esr \
+    libgtk-3-0 \
+    libdbus-glib-1-2 \
+    libxt6 \
+    libpci3 \
+    libasound2 \
     mpv \
     ffmpeg \
     pulseaudio \

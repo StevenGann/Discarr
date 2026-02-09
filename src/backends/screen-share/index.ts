@@ -17,6 +17,12 @@ export class ScreenShareBackend implements OutputBackend {
   async prepare(): Promise<void> {
     if (this._prepared) return;
 
+    // If controller was created for login (headless), replace with full driver for screen share
+    if (this.controller?.isHeadlessOnly()) {
+      await this.controller.shutdown();
+      this.controller = null;
+    }
+
     if (!this.controller) {
       this.controller = new DiscordController(
         this.config,
@@ -24,7 +30,6 @@ export class ScreenShareBackend implements OutputBackend {
       );
       await this.controller.init();
     } else {
-      // Controller may be on login page from getLoginQR; navigate to channel
       await this.controller.navigateToChannel();
     }
     await this.controller.joinVoiceChannel();
