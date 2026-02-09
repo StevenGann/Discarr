@@ -16,6 +16,14 @@ const ConfigSchema = z.object({
   DISCORD_SERVER_ID: z.string().optional(),
   DISCORD_VOICE_CHANNEL_ID: z.string().optional(),
   DISCORD_PROFILE_PATH: z.string().default("./discord-profile"),
+  DISCORD_EMAIL: z
+    .string()
+    .optional()
+    .transform((v) => (v === "" || !v ? undefined : v)),
+  DISCORD_PASSWORD: z
+    .string()
+    .optional()
+    .transform((v) => (v === "" || !v ? undefined : v)),
   JELLYFIN_SERVER_URL: z
     .string()
     .optional()
@@ -57,6 +65,8 @@ export function loadConfig() {
     DISCORD_SERVER_ID: raw.DISCORD_SERVER_ID,
     DISCORD_VOICE_CHANNEL_ID: raw.DISCORD_VOICE_CHANNEL_ID,
     DISCORD_PROFILE_PATH: raw.DISCORD_PROFILE_PATH,
+    DISCORD_EMAIL: raw.DISCORD_EMAIL,
+    DISCORD_PASSWORD: raw.DISCORD_PASSWORD,
     JELLYFIN_SERVER_URL: raw.JELLYFIN_SERVER_URL,
     JELLYFIN_API_KEY: raw.JELLYFIN_API_KEY,
     JELLYFIN_USER_ID: raw.JELLYFIN_USER_ID,

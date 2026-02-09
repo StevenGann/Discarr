@@ -66,7 +66,24 @@ export class DiscordController {
       `https://discord.com/channels/${serverId}/${voiceChannelId}`
     );
 
-    // Wait for Discord to load
+    // Wait for Discord to load (or for login page if not logged in)
+    await this.driver.wait(
+      until.elementLocated(
+        By.css("[data-list-item-id], input[name='email'], input[type='email']")
+      ),
+      30000
+    );
+
+    // If redirected to login and we have credentials, auto-login
+    const email = this.config.DISCORD_EMAIL;
+    const password = this.config.DISCORD_PASSWORD;
+    if (email && password && (await this.isOnLoginPage())) {
+      await this.loginWithCredentials(email, password);
+      await this.driver.get(
+        `https://discord.com/channels/${serverId}/${voiceChannelId}`
+      );
+    }
+
     await this.driver.wait(
       until.elementLocated(By.css("[data-list-item-id]")),
       30000
@@ -74,11 +91,62 @@ export class DiscordController {
   }
 
   /**
-   * Open Discord login page and return screenshot of QR code for scanning.
-   * Uses headless Firefox (no display required). Browser stays open; scan with
-   * Discord mobile app to complete login. Session is saved to profile.
+   * Fill email/password and submit the Discord login form.
+   * Assumes we're already on the Discord login page.
    */
-  async initForLoginAndGetQR(): Promise<Buffer> {
+  async loginWithCredentials(email: string, password: string): Promise<void> {
+    if (!this.driver) throw new Error("Discord controller not initialized");
+
+    const emailInput = await this.driver.wait(
+      until.elementLocated(By.css('input[name="email"], input[type="email"]')),
+      10000
+    );
+    await emailInput.clear();
+    await emailInput.sendKeys(email);
+
+    const passwordInput = await this.driver.findElement(
+      By.css('input[name="password"], input[type="password"]')
+    );
+    await passwordInput.clear();
+    await passwordInput.sendKeys(password);
+
+    const submitBtn = await this.driver.findElement(
+      By.css('button[type="submit"]')
+    );
+    await submitBtn.click();
+
+    // Wait for redirect away from login (channel list or app loads)
+    await this.driver.wait(
+      until.elementLocated(By.css("[data-list-item-id]")),
+      30000
+    );
+  }
+
+  /** Returns true if the current page looks like the Discord login page. */
+  private async isOnLoginPage(): Promise<boolean> {
+    if (!this.driver) return false;
+    const url = await this.driver.getCurrentUrl();
+    if (!url.includes("discord.com/login")) return false;
+    try {
+      await this.driver.findElement(
+        By.css('input[name="email"], input[type="email"]')
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Open Discord login page and return screenshot of QR code for scanning,
+   * OR perform credential login if DISCORD_EMAIL and DISCORD_PASSWORD are set.
+   * Uses headless Firefox (no display required). Browser stays open; scan with
+   * Discord mobile app to complete login (or auto-login with credentials).
+   * Session is saved to profile.
+   */
+  async initForLoginAndGetQR(): Promise<
+    { type: "png"; data: Buffer } | { type: "html"; data: string }
+  > {
     if (!this.driver) {
       this.driver = await this.buildDriverHeadless();
       this._headlessOnly = true;
@@ -86,6 +154,17 @@ export class DiscordController {
 
     await this.driver.get("https://discord.com/login");
     await this.driver.sleep(2000);
+
+    const email = this.config.DISCORD_EMAIL;
+    const password = this.config.DISCORD_PASSWORD;
+
+    if (email && password) {
+      await this.loginWithCredentials(email, password);
+      return {
+        type: "html",
+        data: `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Discarr</title></head><body style="font-family:sans-serif;padding:2rem;text-align:center"><p>Logged in successfully. You can close this tab.</p></body></html>`,
+      };
+    }
 
     // Click "Log in with QR Code" if it's a link/button (shows QR view)
     try {
@@ -100,7 +179,7 @@ export class DiscordController {
 
     // Screenshot the page; QR code is visible on the login view
     const screenshotBase64 = await this.driver.takeScreenshot();
-    return Buffer.from(screenshotBase64, "base64");
+    return { type: "png", data: Buffer.from(screenshotBase64, "base64") };
   }
 
   /** Navigate to the configured voice channel. Use after login when controller was on login page. */

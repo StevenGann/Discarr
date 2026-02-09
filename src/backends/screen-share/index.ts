@@ -37,11 +37,13 @@ export class ScreenShareBackend implements OutputBackend {
   }
 
   /**
-   * Open Discord login page and return QR code screenshot. Scan with Discord
-   * mobile app to log in. Browser stays open; session is saved to profile.
-   * Only available for screen_share backend.
+   * Open Discord login page and return QR code screenshot, or perform credential
+   * login if DISCORD_EMAIL and DISCORD_PASSWORD are set. Browser stays open;
+   * session is saved to profile. Only available for screen_share backend.
    */
-  async getLoginQR(): Promise<Buffer> {
+  async getLoginQR(): Promise<
+    { type: "png"; data: Buffer } | { type: "html"; data: string }
+  > {
     if (!this.controller) {
       this.controller = new DiscordController(
         this.config,

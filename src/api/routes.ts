@@ -41,12 +41,21 @@ export function createRoutes(
 
   router.get("/login-qr", async (_req: Request, res: Response) => {
     try {
-      const qrBackend = backend as { getLoginQR?: () => Promise<Buffer> };
+      const qrBackend = backend as {
+        getLoginQR?: () => Promise<
+          { type: "png"; data: Buffer } | { type: "html"; data: string }
+        >;
+      };
       if (typeof qrBackend.getLoginQR === "function") {
-        const png = await qrBackend.getLoginQR();
-        res.set("Content-Type", "image/png");
+        const result = await qrBackend.getLoginQR();
         res.set("Cache-Control", "no-store");
-        res.send(png);
+        if (result.type === "png") {
+          res.set("Content-Type", "image/png");
+          res.send(result.data);
+        } else {
+          res.set("Content-Type", "text/html");
+          res.send(result.data);
+        }
       } else {
         res.status(501).json({
           error: "QR login only available for screen_share output mode",
