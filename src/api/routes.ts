@@ -39,6 +39,25 @@ export function createRoutes(
 
   const getFeeder = () => feeder;
 
+  router.get("/login-qr", async (_req: Request, res: Response) => {
+    try {
+      const qrBackend = backend as { getLoginQR?: () => Promise<Buffer> };
+      if (typeof qrBackend.getLoginQR === "function") {
+        const png = await qrBackend.getLoginQR();
+        res.set("Content-Type", "image/png");
+        res.set("Cache-Control", "no-store");
+        res.send(png);
+      } else {
+        res.status(501).json({
+          error: "QR login only available for screen_share output mode",
+        });
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      res.status(500).json({ error: message });
+    }
+  });
+
   router.get("/health", (_req: Request, res: Response) => {
     res.json({
       status: "ok",

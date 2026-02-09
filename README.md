@@ -63,9 +63,11 @@ docker compose up -d
 
 Discord requires manual login the first time. Use one of these options:
 
-**Option A: Run with VNC** (see docs for VNC setup) to access the browser and log in.
+**Option A: QR code (recommended, no VNC)** – Open `http://localhost:3000/login-qr` in a browser. Scan the QR code with the Discord mobile app (You → Settings → Scan QR Code). The session is saved automatically.
 
-**Option B: Run locally** (without Docker) to log in, then copy the profile:
+**Option B: Run with VNC** (see docs for VNC setup) to access the browser and log in.
+
+**Option C: Run locally** (without Docker) to log in, then copy the profile:
 
 ```bash
 npm install
@@ -82,6 +84,7 @@ The `discord-profile` volume persists your Discord session.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check; returns status, outputMode, platform |
+| GET | `/login-qr` | Discord login QR code (PNG image); scan with Discord mobile app |
 | GET | `/status` | Current playback state (stopped/playing/paused) |
 | POST | `/play` | Start playback. Body: `{ source, path? \| url? \| jellyfinUrl? }` |
 | POST | `/stop` | Stop playback |

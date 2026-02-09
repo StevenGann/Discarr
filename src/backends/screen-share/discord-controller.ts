@@ -19,7 +19,8 @@ export class DiscordController {
     private readonly profilePath: string
   ) {}
 
-  async init(): Promise<void> {
+  /** Build browser instance. Shared by init and initForLogin. */
+  private async buildDriver(): Promise<WebDriver> {
     const options = new firefox.Options();
 
     // Use persistent profile so login survives restarts
@@ -30,10 +31,14 @@ export class DiscordController {
     options.setPreference("media.navigator.streams.fake", false);
     options.setPreference("dom.webdriver.enabled", false);
 
-    this.driver = await new Builder()
+    return new Builder()
       .forBrowser("firefox")
       .setFirefoxOptions(options)
       .build();
+  }
+
+  async init(): Promise<void> {
+    this.driver = await this.buildDriver();
 
     const serverId = this.config.DISCORD_SERVER_ID;
     const voiceChannelId = this.config.DISCORD_VOICE_CHANNEL_ID;
@@ -49,6 +54,54 @@ export class DiscordController {
     );
 
     // Wait for Discord to load
+    await this.driver.wait(
+      until.elementLocated(By.css("[data-list-item-id]")),
+      30000
+    );
+  }
+
+  /**
+   * Open Discord login page and return screenshot of QR code for scanning.
+   * Browser stays open; scan with Discord mobile app to complete login.
+   * Session is saved to profile for subsequent runs.
+   */
+  async initForLoginAndGetQR(): Promise<Buffer> {
+    if (!this.driver) {
+      this.driver = await this.buildDriver();
+    }
+
+    await this.driver.get("https://discord.com/login");
+    await this.driver.sleep(2000);
+
+    // Click "Log in with QR Code" if it's a link/button (shows QR view)
+    try {
+      const qrLink = await this.driver.findElement(
+        By.xpath("//*[contains(text(), 'Log in with QR Code')]")
+      );
+      await qrLink.click();
+      await this.driver.sleep(2000);
+    } catch {
+      // QR may already be visible; continue
+    }
+
+    // Screenshot the page; QR code is visible on the login view
+    const screenshotBase64 = await this.driver.takeScreenshot();
+    return Buffer.from(screenshotBase64, "base64");
+  }
+
+  /** Navigate to the configured voice channel. Use after login when controller was on login page. */
+  async navigateToChannel(): Promise<void> {
+    if (!this.driver) throw new Error("Discord controller not initialized");
+
+    const serverId = this.config.DISCORD_SERVER_ID;
+    const voiceChannelId = this.config.DISCORD_VOICE_CHANNEL_ID;
+    if (!serverId || !voiceChannelId) {
+      throw new Error("DISCORD_SERVER_ID and DISCORD_VOICE_CHANNEL_ID must be set");
+    }
+
+    await this.driver.get(
+      `https://discord.com/channels/${serverId}/${voiceChannelId}`
+    );
     await this.driver.wait(
       until.elementLocated(By.css("[data-list-item-id]")),
       30000
