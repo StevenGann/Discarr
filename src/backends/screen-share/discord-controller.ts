@@ -113,7 +113,8 @@ export class DiscordController {
     const submitBtn = await this.driver.findElement(
       By.css('button[type="submit"]')
     );
-    await submitBtn.click();
+    // Use JS click: Discord's wrapper div can obscure the button and make normal click fail
+    await this.driver.executeScript("arguments[0].click();", submitBtn);
 
     // Wait for redirect away from login (channel list or app loads)
     await this.driver.wait(
