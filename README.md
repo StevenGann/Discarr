@@ -59,6 +59,8 @@ mkdir -p discord-profile videos
 docker compose up -d
 ```
 
+5. Open `http://localhost:3000` for the web GUI (status, playback controls, Jellyfin link input).
+
 ### First-Time Discord Login
 
 Discord requires manual login the first time. Use one of these options:

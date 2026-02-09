@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discarr</title>
+  <style>
+    :root {
+      --bg: #1a1b26;
+      --surface: #24283b;
+      --border: #3b4261;
+      --text: #c0caf5;
+      --muted: #565f89;
+      --accent: #7aa2f7;
+      --success: #9ece6a;
+      --danger: #f7768e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    main {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 420px;
+      width: 100%;
+    }
+    h1 {
+      margin: 0 0 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .status-dot.playing { background: var(--success); }
+    .status-dot.paused { background: var(--accent); }
+    .status-dot.stopped { background: var(--muted); }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: var(--border); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+    button.primary:hover { filter: brightness(1.1); }
+    button.danger { border-color: var(--danger); color: var(--danger); }
+    button.danger:hover { background: rgba(247,118,142,0.2); }
+    .jellyfin-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    label {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    input[type="url"], input[type="text"] {
+      padding: 0.6rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .links {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .links a { color: var(--accent); text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+    .message {
+      margin-top: 1rem;
+      padding: 0.5rem 0;
+      font-size: 0.85rem;
+      min-height: 1.5em;
+    }
+    .message.error { color: var(--danger); }
+    .message.success { color: var(--success); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Discarr</h1>
+
+    <div class="status">
+      <span class="status-dot stopped" id="statusDot"></span>
+      <span id="statusText">Loading…</span>
+    </div>
+
+    <div class="controls">
+      <button type="button" id="playBtn" class="primary">Play</button>
+      <button type="button" id="stopBtn">Stop</button>
+      <button type="button" id="pauseBtn">Pause</button>
+      <button type="button" id="resumeBtn">Resume</button>
+    </div>
+
+    <form class="jellyfin-form" id="jellyfinForm">
+      <label for="jellyfinUrl">Jellyfin link</label>
+      <input type="url" id="jellyfinUrl" placeholder="https://jellyfin.example.com/web/…" autocomplete="off">
+      <button type="submit" class="primary">Play from Jellyfin</button>
+    </form>
+
+    <div class="message" id="message"></div>
+
+    <div class="links">
+      <a href="/login-qr" target="_blank">Discord login (QR)</a> ·
+      <a href="/health" target="_blank">API health</a>
+    </div>
+  </main>
+
+  <script>
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const playBtn = document.getElementById('playBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const jellyfinForm = document.getElementById('jellyfinForm');
+    const jellyfinUrl = document.getElementById('jellyfinUrl');
+    const message = document.getElementById('message');
+
+    function setMessage(text, type = '') {
+      message.textContent = text || '';
+      message.className = 'message ' + type;
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/status');
+        const data = await res.json();
+        statusText.textContent = `State: ${data.state}`;
+        statusDot.className = 'status-dot ' + data.state;
+        pauseBtn.disabled = data.state !== 'playing';
+        resumeBtn.disabled = data.state !== 'paused';
+        return data;
+      } catch (e) {
+        statusText.textContent = 'Offline';
+        statusDot.className = 'status-dot stopped';
+        return null;
+      }
+    }
+
+    async function api(method, path, body) {
+      const opts = { method };
+      if (body) {
+        opts.headers = { 'Content-Type': 'application/json' };
+        opts.body = JSON.stringify(body);
+      }
+      const res = await fetch(path, opts);
+      const data = res.ok ? await res.json().catch(() => ({})) : await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      return data;
+    }
+
+    jellyfinForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = jellyfinUrl.value.trim();
+      if (!url) {
+        setMessage('Enter a Jellyfin URL', 'error');
+        return;
+      }
+      setMessage('');
+      try {
+        await api('POST', '/play', { source: 'jellyfin', jellyfinUrl: url });
+        setMessage('Playing', 'success');
+        fetchStatus();
+      } catch (e) {
+        setMessage(e.message, 'error');
+      }
+    });
+
+    playBtn.addEventListener('click', async () => {
+      const url = jellyfinUrl.value.trim();
+      if (!url) {
+        setMessage('Enter a Jellyfin URL first', 'error');
+        return;
+      }
+      setMessage('');
+      try {
+        await api('POST', '/play', { source: 'jellyfin', jellyfinUrl: url });
+        setMessage('Playing', 'success');
+        fetchStatus();
+      } catch (e) {
+        setMessage(e.message, 'error');
+      }
+    });
+
+    stopBtn.addEventListener('click', async () => {
+      setMessage('');
+      try {
+        await api('POST', '/stop');
+        setMessage('Stopped', 'success');
+        fetchStatus();
+      } catch (e) {
+        setMessage(e.message, 'error');
+      }
+    });
+
+    pauseBtn.addEventListener('click', async () => {
+      setMessage('');
+      try {
+        await api('POST', '/pause');
+        setMessage('Paused', 'success');
+        fetchStatus();
+      } catch (e) {
+        setMessage(e.message, 'error');
+      }
+    });
+
+    resumeBtn.addEventListener('click', async () => {
+      setMessage('');
+      try {
+        await api('POST', '/resume');
+        setMessage('Resumed', 'success');
+        fetchStatus();
+      } catch (e) {
+        setMessage(e.message, 'error');
+      }
+    });
+
+    fetchStatus();
+    setInterval(fetchStatus, 3000);
+  </script>
+</body>
+</html>

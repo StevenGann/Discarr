@@ -3,11 +3,15 @@
  * Loads config, creates output backend and Jellyfin client, mounts REST API, handles shutdown.
  */
 import express from "express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import cors from "cors";
 import { loadConfig } from "./config.js";
 import { createBackend } from "./backends/registry.js";
 import { createRoutes } from "./api/routes.js";
 import { JellyfinClient } from "./jellyfin/client.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   const config = loadConfig();
@@ -17,6 +21,9 @@ async function main() {
   const app = express();
   app.use(cors());
   app.use(express.json());
+
+  // Web GUI at /
+  app.use(express.static(path.join(__dirname, "..", "public")));
 
   const routes = createRoutes(config, backend, jellyfin);
   app.use("/", routes);
