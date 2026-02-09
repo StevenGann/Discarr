@@ -1,8 +1,8 @@
 # Discarr - https://github.com/StevenGann/Discarr
-# To use the pre-built image instead of building: replace "build: ." with "image: ghcr.io/stevengan/discarr:latest"
+# Uses pre-built image from GHCR. To build from source instead: add "build: ."
 services:
   discarr:
-    build: .
+    image: ghcr.io/stevengann/discarr:latest
     container_name: discarr
     privileged: true
     shm_size: "2gb"
