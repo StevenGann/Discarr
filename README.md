@@ -189,6 +189,8 @@ flowchart TB
 | Discord login required every run | Ensure `discord-profile` volume is mounted and persists. Do first login manually via VNC or local run. |
 | "DISCORD_SERVER_ID must be set" | Add both `DISCORD_SERVER_ID` and `DISCORD_VOICE_CHANNEL_ID` to `.env`. |
 | Video/audio lag or stutter | Xvfb is software-rendered. Consider GPU passthrough or lower resolution. |
+| No audio in screen share | In Docker, PulseAudio is started automatically; enable "Share audio" in Discord if available for your client. |
+| Sharing whole desktop instead of video | Container uses two Xvfb screens (0 = Discord, 1 = MPV); automation selects Screen 1. If it still shares screen 0, the browser picker may need manual selection. |
 | Discord UI selectors broken | Discord may have updated. Check `discord-controller.ts` selectors (aria-label, data-list-item-id). |
 | Jellyfin "not configured" | Set `JELLYFIN_SERVER_URL`, `JELLYFIN_API_KEY`, and `JELLYFIN_USER_ID`. |
 

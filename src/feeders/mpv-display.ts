@@ -27,8 +27,9 @@ export class MPVDisplayFeeder implements VideoFeeder {
     this.process = spawn("mpv", [
       "--no-osc",                    // No on-screen controller
       "--no-input-default-bindings", // Disable keyboard shortcuts
-      "--fs",                        // Fullscreen on the virtual display
+      "--geometry=1280x720+0+0",     // Exact size and position (matches Xvfb screen 1)
       "--no-audio-display",          // Don't show audio viz overlay
+      "--ao=pulse",                 // Audio to PulseAudio so it can be shared with screen
       source,
     ], {
       env,

@@ -1,4 +1,4 @@
-import { Builder, By, until, type WebDriver } from "selenium-webdriver";
+import { Builder, By, Key, until, type WebDriver } from "selenium-webdriver";
 import firefox from "selenium-webdriver/firefox.js";
 import path from "node:path";
 import type { Config } from "../../config.js";
@@ -230,7 +230,20 @@ export class DiscordController {
     );
     await screenShareBtn.click();
 
-    // Modal may appear to select screen/window
+    // Browser's getDisplayMedia picker appears (native). Select "Screen 1" (MPV-only)
+    // so we share only the video, not the whole desktop. Tab + Down + Enter.
+    await this.driver.sleep(2000);
+    try {
+      await this.driver
+        .actions()
+        .sendKeys(Key.TAB)
+        .sendKeys(Key.ARROW_DOWN)
+        .sendKeys(Key.RETURN)
+        .perform();
+    } catch {
+      // Picker may not be keyboard-accessible; fall back to first source
+    }
+
     await this.driver.sleep(1500);
     const sourceSelector =
       '[class*="sourceRow"], [class*="sourceRow"], button[class*="source"]';

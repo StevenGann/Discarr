@@ -54,7 +54,7 @@ export class ScreenShareBackend implements OutputBackend {
   }
 
   getTarget(): Target {
-    const display = process.env.DISPLAY ?? ":99";
+    const display = process.env.DISPLAY_MPV ?? process.env.DISPLAY ?? ":99";
     return { type: "display", display };
   }
 
